@@ -6,21 +6,38 @@ MYSQL_USER=${MYSQL_USER:-"mysql"}
 MYSQL_PASS=${MYSQL_PASS:-"mysql"}
 MYSQL_DB=${MYSQL_DB:-"mysql"}
 
+check_file(){
+  if [ ! -f $1 ]; then
+    echo "ERROR: File not found: $1"
+    exit 1
+  fi
+}
+
+if [ -z "$1" ]; then
+  echo "ERROR: No file or database specified"
+  echo "Requires input parameters in one of the following formats:"
+  echo "  restore /db.sql"
+  echo "  restore /db.sql.gz"
+  echo "  restore dbName /db.sql"
+  echo "  restore dbName /db.sql.gz"
+  exit 1
+fi
+
+
 fullfilename=$1
 filename=$(basename "$fullfilename")
 ext="${filename##*.}"
 
-if [ "${ext}" = "sql" ]; then
-  CAT_CMD=cat
-fi
-
-if [ "${ext}" = "gz" ]; then
-  CAT_CMD=zcat
-fi
-
-echo "Cat_CMD: $CAT_CMD"
+case "${ext}" in
+  sql)
+    CAT_CMD=cat;;
+  gz)
+    CAT_CMD=zcat;;
+esac
 
 if [ -z "$2" ]; then
+  check_file "$1"
+
   echo "=> Restore database from $1"
     if (${CAT_CMD} "$1" | mysql -h${MYSQL_HOST} -P${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASS} ${MYSQL_DB} ) ;then
       echo "   Restore succeeded"
@@ -28,6 +45,8 @@ if [ -z "$2" ]; then
       echo "   Restore failed"
     fi
 else
+  check_file "$2"
+
   echo "=> Restore database $1 from $2 "
     if (${CAT_CMD} "$2" | mysql -h${MYSQL_HOST} -P${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASS} "$1" ) ;then
       echo "   Restore succeeded"

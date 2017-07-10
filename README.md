@@ -66,6 +66,17 @@ INIT_RESTORE_LATEST="false"
 INIT_BACKUP="false"
 ```
 
+## Runtime Operation
+
+The `backup` and `restore` commands can be used manually:
+
+```
+docker exec -it mysqlhelper_helper_1 backup
+
+docker exec -it mysqlhelper_helper_1 restore file.sql
+docker exec -it mysqlhelper_helper_1 restore myDbName file.sql
+```
+
 ## Building
 
 If you have Make installed, the Makefile will help with building the container.
@@ -86,3 +97,9 @@ make run-debug
 # Remove image from your system
 make clean
 ```
+
+## TODO
+
+- Rename scripts, move to `/usr/bin/`
+- Add instructions for running scripts manually
+- Handle `restore` when directory is empty

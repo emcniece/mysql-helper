@@ -57,8 +57,8 @@ else
 fi
 
 if [ -n "${MAX_BACKUPS}" ]; then
-    while [ $(ls /backup -1 | wc -l) -gt ${MAX_BACKUPS} ]; do
-      BACKUP_TO_BE_DELETED=$(ls /backup -1 | sort | head -n 1)
+    while [ $(ls /backup -1 | grep -e .sql$ -e .gz$ | wc -l) -gt ${MAX_BACKUPS} ]; do
+      BACKUP_TO_BE_DELETED=$(ls /backup -1 | grep -e .sql$ -e .gz$ | sort | head -n 1)
       print_log "   Backup ${BACKUP_TO_BE_DELETED} is deleted"
       rm -rf /backup/${BACKUP_TO_BE_DELETED}
     done

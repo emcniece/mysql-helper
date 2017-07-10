@@ -3,10 +3,8 @@ MAINTAINER Eric McNiece <emcniece@gmail.com>
 
 RUN apk add mysql-client --update
 
-ADD scripts/run.sh scripts/backup.sh scripts/restore.sh /
-
-RUN mkdir /backup \
- && chmod +x /run.sh /backup.sh /restore.sh
+ADD scripts/run.sh /
+ADD scripts/backup scripts/restore /usr/bin/
 
 ENV CRON_TIME="0 0 * * *" \
     MYSQL_HOST="mysql" \
@@ -19,6 +17,11 @@ ENV CRON_TIME="0 0 * * *" \
     MAX_BACKUPS="3" \
     INIT_BACKUP="" \
     INIT_RESTORE_LATEST=""
+
+RUN mkdir /backup \
+ && chmod +x /run.sh \
+ && chmod a+x /usr/bin/backup /usr/bin/restore \
+ && (crontab -u root -l; echo "${CRON_TIME} /bin/sh /usr/bin/backup" ) | crontab -u root -
 
 VOLUME ["/backup"]
 

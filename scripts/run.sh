@@ -24,17 +24,13 @@ echo "Connected to host/database: $MYSQL_HOST/$MYSQL_DB"
 
 if [ -n "${INIT_RESTORE_LATEST}" ]; then
     echo "=> Restoring latest backup..."
-    ls -d -1 /backup/* | grep -e .sql$ -e .gz$ | tail -1 | xargs /restore.sh
+    ls -d -1 /backup/* | grep -e .sql$ -e .gz$ | tail -1 | xargs /usr/bin/restore
 fi
 
 if [ -n "${INIT_BACKUP}" ]; then
     echo "=> Creating initial backup..."
-    /backup.sh
+    /usr/bin/backup
 fi
-
-# Add cron task
-CRON_TASK="${CRON_TIME} /bin/sh /backup.sh"
-(crontab -u root -l; echo "$CRON_TASK" ) | crontab -u root -
 
 #Run cron in foreground
 /usr/sbin/crond -f -l 8
