@@ -1,0 +1,23 @@
+version: '2'
+
+services:
+  mysql:
+    image: mariadb
+    command: mysqld --innodb-buffer-pool-size=20M
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+      MYSQL_USER: wp
+      MYSQL_DATABASE: wp
+      MYSQL_PASSWORD: wp
+
+  helper:
+    image: emcniece/mysql-helper:0.0.1
+    volumes:
+      - /Users/emcniece/Code/docker/mysql-helper/backup:/backup
+    environment:
+      - MYSQL_USER=wp
+      - MYSQL_DB=wp
+      - MYSQL_PASS=wp
+      - CRON_TIME=* * * * *
+      - TAR_GZ=true
+      - INIT_RESTORE_LATEST=true

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+sh /backup.sh > /dev/pts/0
