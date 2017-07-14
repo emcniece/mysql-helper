@@ -11,14 +11,14 @@ print_log(){
 }
 
 backup_db(){
-  if [ "$TAR_GZ" = "true" ]; then
+  if [ "$SQL_GZ" = "true" ]; then
     BACKUP_NAME="$BACKUP_NAME.gz"
   fi
 
   print_log "=> Backup started: ${BACKUP_NAME}"
   #print_log "    $BACKUP_CMD"
 
-  if [ "$TAR_GZ" = "true" ]; then
+  if [ "$SQL_GZ" = "true" ]; then
     if ${BACKUP_CMD} | gzip > /backup/${BACKUP_NAME}; then
       print_log "   Backup succeeded"
     else
@@ -57,11 +57,11 @@ else
 fi
 
 if [ -n "${MAX_BACKUPS}" ]; then
-    while [ $(ls /backup -1 | grep -e .sql$ -e .gz$ | wc -l) -gt ${MAX_BACKUPS} ]; do
-      BACKUP_TO_BE_DELETED=$(ls /backup -1 | grep -e .sql$ -e .gz$ | sort | head -n 1)
-      print_log "   Backup ${BACKUP_TO_BE_DELETED} is deleted"
-      rm -rf /backup/${BACKUP_TO_BE_DELETED}
-    done
+  while [ $(ls /backup -1 | grep -e .sql$ -e .sql.gz$ | wc -l) -gt ${MAX_BACKUPS} ]; do
+    BACKUP_TO_BE_DELETED=$(ls /backup -1 | grep -e .sql$ -e .sql.gz$ | sort | head -n 1)
+    print_log "   Backup ${BACKUP_TO_BE_DELETED} is deleted"
+    rm -rf /backup/${BACKUP_TO_BE_DELETED}
+  done
 fi
 
 print_log "=> Backup done"

@@ -24,7 +24,7 @@ echo "Connected to host/database: $MYSQL_HOST/$MYSQL_DB"
 
 if [ -n "${INIT_RESTORE_LATEST}" ]; then
     echo "=> Restoring latest backup..."
-    ls -d -1 /backup/* | grep -e .sql$ -e .gz$ | tail -1 | xargs /usr/bin/restore
+    ls -d -1 /backup/* | grep -e .sql$ -e .sql.gz$ | tail -1 | xargs /usr/bin/restore
 fi
 
 if [ -n "${INIT_BACKUP}" ]; then

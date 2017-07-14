@@ -19,5 +19,5 @@ services:
       - MYSQL_DB=wp
       - MYSQL_PASS=wp
       - CRON_TIME=* * * * *
-      - TAR_GZ=true
+      - SQL_GZ=true
       - INIT_RESTORE_LATEST=true
