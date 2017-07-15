@@ -11,9 +11,10 @@ services:
       MYSQL_PASSWORD: wp
 
   helper:
-    image: emcniece/mysql-helper:0.0.1
+    image: emcniece/mysql-helper:0.0.2
     volumes:
       - /Users/emcniece/Code/docker/mysql-helper/backup:/backup
+      - /Users/emcniece/Code/docker/mysql-helper/target:/target
     environment:
       - MYSQL_USER=wp
       - MYSQL_DB=wp

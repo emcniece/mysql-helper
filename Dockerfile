@@ -18,11 +18,11 @@ ENV CRON_TIME="0 0 * * *" \
     INIT_BACKUP="" \
     INIT_RESTORE_LATEST=""
 
-RUN mkdir /backup \
+RUN mkdir /backup /target \
  && chmod +x /run.sh \
  && chmod a+x /usr/bin/backup /usr/bin/restore \
  && (crontab -u root -l; echo "${CRON_TIME} /bin/sh /usr/bin/backup" ) | crontab -u root -
 
-VOLUME ["/backup"]
+VOLUME ["/backup", "/target"]
 
 ENTRYPOINT ["/run.sh"]

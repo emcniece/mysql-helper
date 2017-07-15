@@ -5,6 +5,7 @@ MYSQL_PORT=${MYSQL_PORT:-"3306"}
 MYSQL_USER=${MYSQL_USER:-"mysql"}
 MYSQL_PASS=${MYSQL_PASS:-"mysql"}
 MYSQL_DB=${MYSQL_DB:-"mysql"}
+RESTORE_LOG_FILE=${RESTORE_LOG_FILE:-"/target/restore.log"}
 
 check_file(){
   if [ ! -f $1 ]; then
@@ -13,45 +14,72 @@ check_file(){
   fi
 }
 
-if [ -z "$1" ]; then
-  echo "ERROR: No file or database specified"
-  echo "Requires input parameters in one of the following formats:"
-  echo "  restore /db.sql"
-  echo "  restore /db.sql.gz"
-  echo "  restore dbName /db.sql"
-  echo "  restore dbName /db.sql.gz"
-  exit 1
-fi
+restore_db(){
+  if [ -z "$1" ]; then
+    echo "ERROR: No file or database specified"
+    echo "Requires input parameters in one of the following formats:"
+    echo "  restore /db.sql"
+    echo "  restore /db.sql.gz"
+    echo "  restore dbName /db.sql"
+    echo "  restore dbName /db.sql.gz"
+    exit 1
+  fi
 
+  fullfilename=$1
+  filename=$(basename "$fullfilename")
+  ext="${filename##*.}"
 
-fullfilename=$1
-filename=$(basename "$fullfilename")
-ext="${filename##*.}"
+  case "${ext}" in
+    sql)
+      CAT_CMD=cat;;
+    gz)
+      CAT_CMD=zcat;;
+  esac
 
-case "${ext}" in
-  sql)
-    CAT_CMD=cat;;
-  gz)
-    CAT_CMD=zcat;;
-esac
+  if [ -z "$2" ]; then
+    check_file "$1"
 
-if [ -z "$2" ]; then
-  check_file "$1"
-
-  echo "=> Restore database from $1"
+    echo "=> Restore database from $1"
     if (${CAT_CMD} "$1" | mysql -h${MYSQL_HOST} -P${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASS} ${MYSQL_DB} ) ;then
       echo "   Restore succeeded"
     else
       echo "   Restore failed"
     fi
-else
-  check_file "$2"
+  else
+    check_file "$2"
 
-  echo "=> Restore database $1 from $2 "
+    echo "=> Restore database $1 from $2 "
     if (${CAT_CMD} "$2" | mysql -h${MYSQL_HOST} -P${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASS} "$1" ) ;then
       echo "   Restore succeeded"
     else
       echo "   Restore failed"
     fi
-fi
+  fi
+} # restore_db()
+
+restore_files(){
+  echo "=> Restoring files from $1"
+  check_file "$1"
+
+  if [ -f "$RESTORE_LOG_FILE" ]; then
+    echo "    WARNING: File restore already done on $(cat $RESTORE_LOG_FILE). Skipping restore."
+  else
+    if ( tar -zxf $1 -C /target . ) ;then
+      echo "   Restore succeeded"
+      date > $RESTORE_LOG_FILE
+    else
+      echo "   Restore failed"
+    fi
+  fi
+} # restore_files()
+
+# Do some jobs!
+
+case "$1" in
+  *.tar.gz) restore_files $1;;
+  *.sql.gz) restore_db $1 $2;;
+  *.sql)    restore_db $1 $2;;
+  *) echo "File format not supported. Expecting: .sql.gz .sql .tar.gz" ;;
+esac
+
 echo "=> Done"
