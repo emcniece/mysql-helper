@@ -63,9 +63,9 @@ clean_backups(){
   fi
 } # clean_backups()
 
-if ! $(mysql -h ${MYSQL_HOST} -u ${MYSQL_USER} -p${MYSQL_PASS} -e "quit" || exit 1); then
+if ! $(mysql -h ${MYSQL_HOST} -u ${MYSQL_USER} -p${MYSQL_PASS} -e "quit" || return 1); then
   print_log "Error connecting to database"
-  exit 1
+  return 1
 fi
 
 if [ "${MYSQL_DB}" != "--all-databases" ]; then

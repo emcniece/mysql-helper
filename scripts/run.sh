@@ -36,4 +36,5 @@ if [ -n "${INIT_BACKUP}" ]; then
 fi
 
 #Run cron in foreground
+echo "=> Starting cron jobs!"
 /usr/sbin/crond -f -l 8

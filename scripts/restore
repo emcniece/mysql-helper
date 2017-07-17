@@ -10,7 +10,7 @@ RESTORE_LOG_FILE=${RESTORE_LOG_FILE:-"/target/restore.log"}
 check_file(){
   if [ ! -f $1 ]; then
     echo "ERROR: File not found: $1"
-    exit 1
+    return 1
   fi
 }
 
@@ -22,7 +22,7 @@ restore_db(){
     echo "  restore /db.sql.gz"
     echo "  restore dbName /db.sql"
     echo "  restore dbName /db.sql.gz"
-    exit 1
+    return 1
   fi
 
   fullfilename=$1
