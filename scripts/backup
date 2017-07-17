@@ -5,6 +5,7 @@ MYSQL_PORT=${MYSQL_PORT:-"3306"}
 MYSQL_USER=${MYSQL_USER:-"mysql"}
 MYSQL_PASS=${MYSQL_PASS:-"mysql"}
 MYSQL_DB=${MYSQL_DB:-"mysql"}
+BACKUP_LOG_FILE=${BACKUP_LOG_FILE:-"/backup/restore.log"}
 
 print_log(){
   echo $1
@@ -89,4 +90,5 @@ fi
 backup_files
 clean_backups
 
+date > $BACKUP_LOG_FILE
 print_log "=> Backup done"
