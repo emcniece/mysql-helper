@@ -49,6 +49,10 @@ MYSQL_DB="--all-databases"
 # Additional MySQL command options
 OPTS="--opt --single-transaction"
 
+# Directory targets (no trailing slash)
+BACKUP_DIR="/backup"
+TARGET_DIR="/target"
+
 # Archive/compress backups
 TAR_GZ="true"
 
