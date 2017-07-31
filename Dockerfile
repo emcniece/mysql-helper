@@ -16,7 +16,9 @@ ENV CRON_TIME="0 0 * * *" \
     TAR_GZ="true" \
     MAX_BACKUPS="3" \
     INIT_BACKUP="" \
-    INIT_RESTORE_LATEST=""
+    INIT_RESTORE_LATEST="" \
+    BACKUP_DIR="/backup" \
+    TARGET_DIR="/target"
 
 RUN mkdir /backup /target \
  && chmod +x /run.sh \

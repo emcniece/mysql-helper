@@ -7,11 +7,11 @@ MYSQL_PASS=${MYSQL_PASS:-"mysql"}
 MYSQL_DB=${MYSQL_DB:-"mysql"}
 
 COUNTER=0
-MAX_CONN_CHECKS=${MAX_CONN_CHECKS:-40}
+MAX_CONN_CHECKS=${MAX_CONN_CHECKS:-20}
 
 until nc -z $MYSQL_HOST $MYSQL_PORT; do
     echo "waiting for database container..."
-    sleep 1
+    sleep 5
 
     COUNTER=$((COUNTER+1))
     if [ "$COUNTER" -ge "$MAX_CONN_CHECKS" ]; then

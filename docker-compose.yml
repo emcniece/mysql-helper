@@ -11,7 +11,7 @@ services:
       MYSQL_PASSWORD: wp
 
   helper:
-    image: emcniece/mysql-helper:0.0.2
+    image: emcniece/mysql-helper:0.0.3
     volumes:
       - /Users/emcniece/Code/docker/mysql-helper/backup:/backup
       - /Users/emcniece/Code/docker/mysql-helper/target:/target
@@ -22,3 +22,4 @@ services:
       - CRON_TIME=* * * * *
       - SQL_GZ=true
       - INIT_RESTORE_LATEST=true
+      - BACKUP_DIR=/backup/site.com

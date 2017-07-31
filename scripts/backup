@@ -5,10 +5,24 @@ MYSQL_PORT=${MYSQL_PORT:-"3306"}
 MYSQL_USER=${MYSQL_USER:-"mysql"}
 MYSQL_PASS=${MYSQL_PASS:-"mysql"}
 MYSQL_DB=${MYSQL_DB:-"mysql"}
-BACKUP_LOG_FILE=${BACKUP_LOG_FILE:-"/target/backup.log"}
+BACKUP_DIR=${BACKUP_DIR:-"/backup"}
+TARGET_DIR=${TARGET_DIR:-"/target"}
+BACKUP_LOG_FILE=${BACKUP_LOG_FILE:-"$TARGET_DIR/backup.log"}
 
 print_log(){
   echo $1
+}
+
+test_directories(){
+  if [ ! -d "$BACKUP_DIR" ]; then
+    print_log "=> Backup directory doesn't exist - creating $BACKUP_DIR"
+    mkdir -p $BACKUP_DIR
+  fi
+
+  if [ ! -d "$TARGET_DIR" ]; then
+    print_log "=> Target directory doesn't exist - creating $TARGET_DIR"
+    mkdir -p $TARGET_DIR
+  fi
 }
 
 backup_db(){
@@ -19,29 +33,29 @@ backup_db(){
   print_log "=> Backup started: ${BACKUP_NAME}"
 
   if [ "$SQL_GZ" = "true" ]; then
-    if ${BACKUP_CMD} | gzip > /backup/${BACKUP_NAME}; then
+    if ${BACKUP_CMD} | gzip > ${BACKUP_DIR}/${BACKUP_NAME}; then
       print_log "   DB Backup succeeded"
     else
       print_log "   DB Backup failed"
-      rm -rf /backup/${BACKUP_NAME}
+      rm -rf ${BACKUP_DIR}/${BACKUP_NAME}
     fi
   else
-    if ${BACKUP_CMD} > /backup/${BACKUP_NAME}; then
+    if ${BACKUP_CMD} > ${BACKUP_DIR}/${BACKUP_NAME}; then
       print_log "   DB Backup succeeded"
     else
       print_log "   DB Backup failed"
-      rm -rf /backup/${BACKUP_NAME}
+      rm -rf ${BACKUP_DIR}/${BACKUP_NAME}
     fi
   fi
 } # backup_db()
 
 backup_files(){
-  if [ `ls -A /target | wc -m` == "0" ]; then
+  if [ `ls -A $TARGET_DIR | wc -m` == "0" ]; then
     echo "FILE backup - Target empty, skipping"
   else
     BACKUP_NAME=files-$(date +\%Y\%m\%d-\%H\%M\%S).tar.gz
-    tar -zcf /backup/${BACKUP_NAME} -C /target .
-    echo "FILE backup comple  te"
+    tar -zcf ${BACKUP_DIR}/${BACKUP_NAME} -C ${TARGET_DIR} .
+    echo "FILE backup complete"
   fi
 } # backup_files()
 
@@ -49,45 +63,48 @@ clean_backups(){
   if [ -n "${MAX_BACKUPS}" ]; then
 
     # Clean DB backups
-    while [ $(ls /backup -1 | grep -e .sql$ -e .sql.gz$ | wc -l) -gt ${MAX_BACKUPS} ]; do
-      BACKUP_TO_BE_DELETED=$(ls /backup -1 | grep -e .sql$ -e .sql.gz$ | sort | head -n 1)
+    while [ $(ls $BACKUP_DIR -1 | grep -e .sql$ -e .sql.gz$ | wc -l) -gt ${MAX_BACKUPS} ]; do
+      BACKUP_TO_BE_DELETED=$(ls $BACKUP_DIR -1 | grep -e .sql$ -e .sql.gz$ | sort | head -n 1)
       print_log "   DB Backup ${BACKUP_TO_BE_DELETED} is deleted"
-      rm -rf /backup/${BACKUP_TO_BE_DELETED}
+      rm -rf ${BACKUP_DIR}/${BACKUP_TO_BE_DELETED}
     done
 
     # Clean FILE backups
-    while [ $(ls /backup -1 | grep -e .tar.gz$ | wc -l) -gt ${MAX_BACKUPS} ]; do
-      BACKUP_TO_BE_DELETED=$(ls /backup -1 | grep -e .tar.gz$ | sort | head -n 1)
+    while [ $(ls $BACKUP_DIR -1 | grep -e .tar.gz$ | wc -l) -gt ${MAX_BACKUPS} ]; do
+      BACKUP_TO_BE_DELETED=$(ls $BACKUP_DIR -1 | grep -e .tar.gz$ | sort | head -n 1)
       print_log "   File Backup ${BACKUP_TO_BE_DELETED} is deleted"
-      rm -rf /backup/${BACKUP_TO_BE_DELETED}
+      rm -rf ${BACKUP_DIR}/${BACKUP_TO_BE_DELETED}
     done
   fi
 } # clean_backups()
 
-if ! $(mysql -h ${MYSQL_HOST} -u ${MYSQL_USER} -p${MYSQL_PASS} -e "quit" || return 1); then
-  print_log "Error connecting to database"
-  return 1
-fi
+init_db_backup(){
+  if ! $(mysql -h ${MYSQL_HOST} -u ${MYSQL_USER} -p${MYSQL_PASS} -e "quit" || return 1); then
+    print_log "Error connecting to database"
+    return 1
+  fi
 
-if [ "${MYSQL_DB}" != "--all-databases" ]; then
-  for db in ${MYSQL_DB}; do
+  if [ "${MYSQL_DB}" != "--all-databases" ]; then
+    for db in ${MYSQL_DB}; do
 
-    BACKUP_NAME=${db}-$(date +\%Y\%m\%d-\%H\%M\%S).sql
-    BACKUP_CMD="mysqldump ${OPTS} -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USER} -p${MYSQL_PASS} ${EXTRA_OPTS} ${db}"
+      BACKUP_NAME=${db}-$(date +\%Y\%m\%d-\%H\%M\%S).sql
+      BACKUP_CMD="mysqldump ${OPTS} -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USER} -p${MYSQL_PASS} ${EXTRA_OPTS} ${db}"
 
-    #backup_db $BACKUP_NAME $BACKUP_CMD
+      backup_db
+    done
+  else
+    MYSQL_DB="--all-databases"
+    BACKUP_NAME=$(date +\%Y\%m\%d-\%H\%M\%S).sql
+    BACKUP_CMD="mysqldump ${OPTS} -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USER} -p${MYSQL_PASS} ${EXTRA_OPTS} ${MYSQL_DB}"
+
     backup_db
-  done
-else
-  MYSQL_DB="--all-databases"
-  BACKUP_NAME=$(date +\%Y\%m\%d-\%H\%M\%S).sql
-  BACKUP_CMD="mysqldump ${OPTS} -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USER} -p${MYSQL_PASS} ${EXTRA_OPTS} ${MYSQL_DB}"
-
-  backup_db
-fi
+  fi
+}
 
 # Do some jobs!
+test_directories
 backup_files
+init_db_backup
 clean_backups
 
 date > $BACKUP_LOG_FILE

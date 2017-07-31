@@ -5,7 +5,10 @@ MYSQL_PORT=${MYSQL_PORT:-"3306"}
 MYSQL_USER=${MYSQL_USER:-"mysql"}
 MYSQL_PASS=${MYSQL_PASS:-"mysql"}
 MYSQL_DB=${MYSQL_DB:-"mysql"}
+BACKUP_DIR=${BACKUP_DIR:-"/backup"}
+TARGET_DIR=${TARGET_DIR:-"/target"}
 RESTORE_LOG_FILE=${RESTORE_LOG_FILE:-"/target/restore.log"}
+
 
 check_file(){
   if [ ! -f $1 ]; then
@@ -64,7 +67,7 @@ restore_files(){
   if [ -f "$RESTORE_LOG_FILE" ]; then
     echo "    WARNING: File restore already done on $(cat $RESTORE_LOG_FILE). Skipping restore."
   else
-    if ( tar -zxf $1 -C /target . ) ;then
+    if ( tar -zxf $1 -C ${TARGET_DIR} . ) ;then
       echo "   Restore succeeded"
       date > $RESTORE_LOG_FILE
     else
