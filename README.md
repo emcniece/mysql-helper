@@ -2,7 +2,7 @@
 
 DockerHub: [emcniece/mysql-helper](https://hub.docker.com/r/emcniece/mysql-helper/)
 
-Helper container for MySQL instances that provides auto-import on first run and timed backups. Small, flexible, handles `.sql.gz` formats.
+Helper container for MySQL instances that provides auto-import on first run and timed backups. Small, flexible, handles `.sql.gz` formats. Also performs optional file archival and backup.
 
 Inspired by [yloeffler/mysql-backup](https://hub.docker.com/r/yloeffler/mysql-backup/).
 
@@ -75,9 +75,16 @@ INIT_BACKUP="false"
 The `backup` and `restore` commands can be used manually:
 
 ```
+# Backup files and database
 docker exec -it mysqlhelper_helper_1 backup
 
+# Restore files and database
+docker exec -it mysqlhelper_helper_1 restore
+
+# Restore SQL file to ENV-defined database
 docker exec -it mysqlhelper_helper_1 restore file.sql
+
+# Restore SQL file to CLI-defined database
 docker exec -it mysqlhelper_helper_1 restore myDbName file.sql
 ```
 
@@ -101,9 +108,3 @@ make run-debug
 # Remove image from your system
 make clean
 ```
-
-## TODO
-
-- Rename scripts, move to `/usr/bin/`
-- Add instructions for running scripts manually
-- Handle `restore` when directory is empty

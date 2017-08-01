@@ -1,4 +1,10 @@
 #!/bin/sh
+# Usage:
+#   restore
+#   restore /backup/files-20170731-223028.tar.gz
+#   restore /backup/wordpress-20170731-222745.sql
+#   restore /backup/wordpress-20170731-222745.sql.gz
+#
 
 MYSQL_HOST=${MYSQL_HOST:-"mysql"}
 MYSQL_PORT=${MYSQL_PORT:-"3306"}
@@ -76,13 +82,20 @@ restore_files(){
   fi
 } # restore_files()
 
+full_restore(){
+  echo "=> Restoring files AND database... "
+  ls -d -1 $BACKUP_DIR/* | grep -e .sql$ -e .sql.gz$ | tail -1 | xargs ./$0
+  ls -d -1 $BACKUP_DIR/* | grep -e .tar.gz$ | tail -1 | xargs ./$0
+  echo "=> ... full file AND database restore complete."
+}
+
 # Do some jobs!
 
 case "$1" in
   *.tar.gz) restore_files $1;;
   *.sql.gz) restore_db $1 $2;;
   *.sql)    restore_db $1 $2;;
-  *) echo "File format not supported. Expecting: .sql.gz .sql .tar.gz" ;;
+  *) full_restore;;
 esac
 
 echo "=> Done"
