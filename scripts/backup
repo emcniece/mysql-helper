@@ -7,7 +7,7 @@ MYSQL_PASS=${MYSQL_PASS:-"mysql"}
 MYSQL_DB=${MYSQL_DB:-"mysql"}
 BACKUP_DIR=${BACKUP_DIR:-"/backup"}
 TARGET_DIR=${TARGET_DIR:-"/target"}
-BACKUP_LOG_FILE=${BACKUP_LOG_FILE:-"$TARGET_DIR/backup.log"}
+BACKUP_LOG_FILE=${BACKUP_LOG_FILE:-"$TARGET_DIR/.backup.log"}
 
 print_log(){
   echo $1
@@ -54,7 +54,11 @@ backup_files(){
     echo "FILE backup - Target empty, skipping"
   else
     BACKUP_NAME=files-$(date +\%Y\%m\%d-\%H\%M\%S).tar.gz
-    tar -zcf ${BACKUP_DIR}/${BACKUP_NAME} -C ${TARGET_DIR} .
+    tar \
+      --exclude="$TARGET_DIR/.restore.log" \
+      -zcf ${BACKUP_DIR}/${BACKUP_NAME} \
+      -C ${TARGET_DIR} .
+
     echo "FILE backup complete"
   fi
 } # backup_files()

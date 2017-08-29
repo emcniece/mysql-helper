@@ -13,7 +13,7 @@ MYSQL_PASS=${MYSQL_PASS:-"mysql"}
 MYSQL_DB=${MYSQL_DB:-"mysql"}
 BACKUP_DIR=${BACKUP_DIR:-"/backup"}
 TARGET_DIR=${TARGET_DIR:-"/target"}
-RESTORE_LOG_FILE=${RESTORE_LOG_FILE:-"$TARGET_DIR/restore.log"}
+RESTORE_LOG_FILE=${RESTORE_LOG_FILE:-"$TARGET_DIR/.restore.log"}
 
 
 check_file(){
@@ -74,17 +74,23 @@ restore_files(){
     echo "    WARNING: File restore already done on $(cat $RESTORE_LOG_FILE). Skipping restore."
   else
 
-    ## TODO
-    #
-    #  Commit the change to the `tar -zxf` line (removing . at end)
-    #
-    #  Find a way to chown files to existing user:group.
-    #  Currently when extraction happens, the extracted files are 509:509
-    #  ... and the existing files are 82:82
-    #
     if ( tar -zxf $1 -C ${TARGET_DIR} ); then
       echo "   Restore succeeded"
       date > $RESTORE_LOG_FILE
+
+      ##
+      # wp-fpm seems to run as root, so reading usergroup from fs is useless.
+      # Setting as root for now.
+      ##
+
+      #USER=$( stat -c %u $TARGET_DIR )
+      #GROUP=$( stat -c %g $TARGET_DIR )
+      #chown -R $USER:$GROUP $TARGET_DIR/*
+
+      USER=root
+      GROUP=root
+      echo "   Setting permissions to USER:GROUP $USER:$GROUP"
+      chown -R $USER:$GROUP $TARGET_DIR/*
     else
       echo "   Restore failed"
     fi
@@ -98,7 +104,6 @@ full_restore(){
     DB_FILE=$(ls -d -1 $BACKUP_DIR/* | grep -e .sql$ -e .sql.gz$ | tail -1)
     echo "==> Found database backup: $DB_FILE"
     echo $DB_FILE | xargs ./$0
-    #ls -d -1 $BACKUP_DIR/* | grep -e .sql$ -e .sql.gz$ | tail -1 | xargs ./$0
   else
     echo "==> WARN: No database backup available"
   fi
@@ -107,7 +112,6 @@ full_restore(){
     ARCHIVE_FILE=$(ls -d -1 $BACKUP_DIR/* | grep -e .tar.gz$ | tail -1)
     echo "==> Found file backup: $ARCHIVE_FILE"
     echo $ARCHIVE_FILE | xargs ./$0
-    #ls -d -1 $BACKUP_DIR/* | grep -e .tar.gz$ | tail -1 | xargs ./$0
   else
     echo "==> WARN: No file backup available"
   fi
