@@ -73,7 +73,16 @@ restore_files(){
   if [ -f "$RESTORE_LOG_FILE" ]; then
     echo "    WARNING: File restore already done on $(cat $RESTORE_LOG_FILE). Skipping restore."
   else
-    if ( tar -zxf $1 -C ${TARGET_DIR} . ) ;then
+
+    ## TODO
+    #
+    #  Commit the change to the `tar -zxf` line (removing . at end)
+    #
+    #  Find a way to chown files to existing user:group.
+    #  Currently when extraction happens, the extracted files are 509:509
+    #  ... and the existing files are 82:82
+    #
+    if ( tar -zxf $1 -C ${TARGET_DIR} ); then
       echo "   Restore succeeded"
       date > $RESTORE_LOG_FILE
     else
@@ -83,10 +92,27 @@ restore_files(){
 } # restore_files()
 
 full_restore(){
-  echo "=> Restoring files AND database... "
-  ls -d -1 $BACKUP_DIR/* | grep -e .sql$ -e .sql.gz$ | tail -1 | xargs ./$0
-  ls -d -1 $BACKUP_DIR/* | grep -e .tar.gz$ | tail -1 | xargs ./$0
-  echo "=> ... full file AND database restore complete."
+  echo "=> Restoring files/database... "
+
+  if ( ls -d -1 $BACKUP_DIR/* | grep -e .sql$ -e .sql.gz$ ); then
+    DB_FILE=$(ls -d -1 $BACKUP_DIR/* | grep -e .sql$ -e .sql.gz$ | tail -1)
+    echo "==> Found database backup: $DB_FILE"
+    echo $DB_FILE | xargs ./$0
+    #ls -d -1 $BACKUP_DIR/* | grep -e .sql$ -e .sql.gz$ | tail -1 | xargs ./$0
+  else
+    echo "==> WARN: No database backup available"
+  fi
+
+  if ( ls -d -1 $BACKUP_DIR/* | grep -e .tar.gz$ ); then
+    ARCHIVE_FILE=$(ls -d -1 $BACKUP_DIR/* | grep -e .tar.gz$ | tail -1)
+    echo "==> Found file backup: $ARCHIVE_FILE"
+    echo $ARCHIVE_FILE | xargs ./$0
+    #ls -d -1 $BACKUP_DIR/* | grep -e .tar.gz$ | tail -1 | xargs ./$0
+  else
+    echo "==> WARN: No file backup available"
+  fi
+
+  echo "=> ... Full file/database restore complete."
 }
 
 # Do some jobs!
