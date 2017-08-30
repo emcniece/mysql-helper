@@ -68,6 +68,13 @@ INIT_RESTORE_LATEST="false"
 # Create a backup on startup
 # Runs after INIT_RESTORE_LATEST
 INIT_BACKUP="false"
+
+# Restore the specific directory that a target file resides in.
+# If there are multiple matching files, the first one will be used.
+ARCHIVE_ROOT_FILE="wp-config.php"
+
+# Change the temporary directory location for restore extraction
+TMP_DIR="/tmp/helper-extract"
 ```
 
 ## Runtime Operation
