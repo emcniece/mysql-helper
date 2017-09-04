@@ -25,7 +25,25 @@ test_directories(){
   fi
 }
 
+wait_for_db(){
+  until nc -z $MYSQL_HOST $MYSQL_PORT; do
+    echo "waiting for database container..."
+    sleep 5
+
+    COUNTER=$((COUNTER+1))
+    if [ "$COUNTER" -ge "$MAX_CONN_CHECKS" ]; then
+      echo "ERROR: could not connect to database"
+      exit 1
+    fi
+  done
+
+  echo "Connected to host/database: $MYSQL_HOST/$MYSQL_DB"
+}
+
 backup_db(){
+  # Ensure DB connection
+  wait_for_db
+
   if [ "$SQL_GZ" = "true" ]; then
     BACKUP_NAME="$BACKUP_NAME.gz"
   fi
@@ -105,6 +123,19 @@ init_db_backup(){
   fi
 }
 
+check_reboot_flag(){
+  # Process flags
+  while getopts 'r' flag; do
+    case "${flag}" in
+      r)
+        print_log "=> Rebooting to flush memory..."
+        killall -9 crond
+        ;;
+      *) error "Unexpected option ${flag}" ;;
+    esac
+  done
+}
+
 # Do some jobs!
 test_directories
 backup_files
@@ -113,3 +144,4 @@ clean_backups
 
 date > $BACKUP_LOG_FILE
 print_log "=> Backup done"
+check_reboot_flag

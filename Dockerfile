@@ -1,9 +1,9 @@
 FROM alpine:3.6
 MAINTAINER Eric McNiece <emcniece@gmail.com>
 
-RUN apk add mysql-client --update
+RUN apk --no-cache --update add mysql-client
 
-ADD scripts/run.sh /
+ADD scripts/run.sh VERSION /
 ADD scripts/backup scripts/restore /usr/bin/
 
 ENV CRON_TIME="0 0 * * *" \
