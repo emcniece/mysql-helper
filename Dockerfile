@@ -23,7 +23,7 @@ ENV CRON_TIME="0 0 * * *" \
 RUN mkdir /backup /target \
  && chmod +x /run.sh \
  && chmod a+x /usr/bin/backup /usr/bin/restore \
- && (crontab -u root -l; echo "${CRON_TIME} /bin/sh /usr/bin/backup" ) | crontab -u root -
+ && (crontab -u root -l; echo "${CRON_TIME} /bin/sh /usr/bin/backup -r" ) | crontab -u root -
 
 VOLUME ["/backup", "/target"]
 
