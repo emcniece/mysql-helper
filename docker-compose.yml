@@ -20,7 +20,7 @@ services:
       - MYSQL_USER=wp
       - MYSQL_DB=wp
       - MYSQL_PASS=wp
-      - CRON_TIME=* * * * *
+      - CRON_TIME=*/2 * * * *
       - SQL_GZ=true
       - INIT_RESTORE_LATEST=true
       - BACKUP_DIR=/backup/site.com

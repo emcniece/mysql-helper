@@ -123,6 +123,11 @@ init_db_backup(){
   fi
 }
 
+do_reboot(){
+  print_log "=> Rebooting to flush memory..."
+  killall -9 crond
+}
+
 # Do some jobs!
 test_directories
 backup_files
@@ -135,10 +140,7 @@ print_log "=> Backup done"
 # Process reboot flag
 while getopts 'r' flag; do
   case "${flag}" in
-    r)
-      print_log "=> Rebooting to flush memory..."
-      killall -9 crond
-      ;;
+    r) trap do_reboot EXIT ;;
     *) error "Unexpected option ${flag}" ;;
   esac
 done
