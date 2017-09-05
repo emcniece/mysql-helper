@@ -95,7 +95,7 @@ restore_files(){
   else
 
     mkdir -p $TMP_DIR
-    if ( tar -zxf $1 -C ${TMP_DIR} --exclude=*wp-config.php ); then
+    if ( tar -zxf $1 -C ${TMP_DIR} ); then
       echo "   Extract to $TMP_DIR succeeded"
 
       if [ "$ARCHIVE_ROOT_FILE" != "" ]; then
@@ -122,8 +122,6 @@ restore_files(){
       GROUP=$( stat -c %g $TARGET_DIR )
       chown -R $USER:$GROUP $TARGET_DIR/*
 
-      USER=root
-      GROUP=root
       echo "   Setting permissions to USER:GROUP $USER:$GROUP"
       chown -R $USER:$GROUP $TARGET_DIR/*
 
