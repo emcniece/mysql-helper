@@ -11,6 +11,11 @@ TARGET_DIR=${TARGET_DIR:-"/target"}
 COUNTER=0
 MAX_CONN_CHECKS=${MAX_CONN_CHECKS:-20}
 
+set_cronjob(){
+  echo "=> Init Cron Time: $CRON_TIME"
+  (crontab -u root -l; echo "${CRON_TIME} /bin/sh /usr/bin/backup -r" ) | crontab -u root -
+}
+
 test_directories(){
   echo "=> Init Backup Directory: $BACKUP_DIR"
   echo "=> Init Target Directory: $TARGET_DIR"
@@ -45,6 +50,7 @@ restore_latest(){
 echo "=> MySQL-Helper v$(cat /VERSION)"
 
 # Do some jobs
+set_cronjob
 test_directories
 restore_latest
 
