@@ -41,49 +41,56 @@ wait_for_db(){
 }
 
 restore_db(){
-  # Ensure DB connection
-  wait_for_db
-
-  if [ -z "$1" ]; then
-    echo "ERROR: No file or database specified"
-    echo "Requires input parameters in one of the following formats:"
-    echo "  restore /db.sql"
-    echo "  restore /db.sql.gz"
-    echo "  restore dbName /db.sql"
-    echo "  restore dbName /db.sql.gz"
-    return 1
-  fi
-
-  fullfilename=$1
-  filename=$(basename "$fullfilename")
-  ext="${filename##*.}"
-
-  case "${ext}" in
-    sql)
-      CAT_CMD=cat;;
-    gz)
-      CAT_CMD=zcat;;
-  esac
-
-  if [ -z "$2" ]; then
-    check_file "$1"
-
-    echo "=> Restore database from $1"
-    if (${CAT_CMD} "$1" | mysql -h${MYSQL_HOST} -P${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASS} ${MYSQL_DB} ) ;then
-      echo "   Restore succeeded"
-    else
-      echo "   Restore failed"
-    fi
+  if [ -f "$RESTORE_LOG_FILE" ]; then
+    echo "    WARNING: DB restore already done on $(cat $RESTORE_LOG_FILE). Skipping DB restore."
   else
-    check_file "$2"
 
-    echo "=> Restore database $1 from $2 "
-    if (${CAT_CMD} "$2" | mysql -h${MYSQL_HOST} -P${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASS} "$1" ) ;then
-      echo "   Restore succeeded"
-    else
-      echo "   Restore failed"
+    # Ensure DB connection
+    wait_for_db
+
+    if [ -z "$1" ]; then
+      echo "ERROR: No file or database specified"
+      echo "Requires input parameters in one of the following formats:"
+      echo "  restore /db.sql"
+      echo "  restore /db.sql.gz"
+      echo "  restore dbName /db.sql"
+      echo "  restore dbName /db.sql.gz"
+      return 1
     fi
-  fi
+
+    fullfilename=$1
+    filename=$(basename "$fullfilename")
+    ext="${filename##*.}"
+
+    case "${ext}" in
+      sql)
+        CAT_CMD=cat;;
+      gz)
+        CAT_CMD=zcat;;
+    esac
+
+    if [ -z "$2" ]; then
+      check_file "$1"
+
+      echo "=> Restore database from $1"
+      if (${CAT_CMD} "$1" | mysql -h${MYSQL_HOST} -P${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASS} ${MYSQL_DB} ) ;then
+        echo "   Restore succeeded"
+      else
+        echo "   Restore failed"
+      fi
+    else
+      check_file "$2"
+
+      echo "=> Restore database $1 from $2 "
+      if (${CAT_CMD} "$2" | mysql -h${MYSQL_HOST} -P${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASS} "$1" ) ;then
+        echo "   Restore succeeded"
+      else
+        echo "   Restore failed"
+      fi
+    fi
+
+  fi # if no restore log file
+
 } # restore_db()
 
 restore_files(){
@@ -91,7 +98,7 @@ restore_files(){
   check_file "$1"
 
   if [ -f "$RESTORE_LOG_FILE" ]; then
-    echo "    WARNING: File restore already done on $(cat $RESTORE_LOG_FILE). Skipping restore."
+    echo "    WARNING: File restore already done on $(cat $RESTORE_LOG_FILE). Skipping file restore."
   else
 
     mkdir -p $TMP_DIR
@@ -155,6 +162,7 @@ full_restore(){
 }
 
 # Do some jobs!
+echo "=> MySQL-Helper v$(cat /VERSION)"
 
 case "$1" in
   *.tar.gz) restore_files $1;;

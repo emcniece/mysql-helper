@@ -129,6 +129,8 @@ do_reboot(){
 }
 
 # Do some jobs!
+echo "=> MySQL-Helper v$(cat /VERSION)"
+
 test_directories
 backup_files
 init_db_backup
