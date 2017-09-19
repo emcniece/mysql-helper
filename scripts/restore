@@ -107,7 +107,7 @@ restore_files(){
 
       if [ "$ARCHIVE_ROOT_FILE" != "" ]; then
         echo "   Finding root file directory for $ARCHIVE_ROOT_FILE"
-        if ( find $TMP_DIR -type f -name $ARCHIVE_ROOT_FILE -print | head -n 1 ); then
+        if [ $(find $TMP_DIR -type f -name $ARCHIVE_ROOT_FILE | wc -l ) -gt 0 ]; then
           FILE=$(find $TMP_DIR -type f -name $ARCHIVE_ROOT_FILE -print | head -n 1)
           FOUND=$(dirname $FILE)
           echo "   Moving files from $FOUND to $TARGET_DIR"
