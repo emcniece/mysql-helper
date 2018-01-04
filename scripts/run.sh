@@ -13,7 +13,13 @@ MAX_CONN_CHECKS=${MAX_CONN_CHECKS:-20}
 
 set_cronjob(){
   echo "=> Init Cron Time: $CRON_TIME"
-  (crontab -u root -l; echo "${CRON_TIME} /bin/sh /usr/bin/backup -r" ) | crontab -u root -
+
+  if [ $( grep backup /etc/crontabs/root | wc -l ) -gt 0 ]; then
+    echo "  - Cron job installed properly."
+  else
+    echo "  - Installing cron job"
+    (crontab -u root -l; echo "${CRON_TIME} /bin/sh /usr/bin/backup -r" ) | crontab -u root -
+  fi
 }
 
 test_directories(){
